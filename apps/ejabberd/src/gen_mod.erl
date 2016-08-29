@@ -203,12 +203,10 @@ is_app_running(AppName) ->
 %% @doc Stop the module in a host, and forget its configuration.
 -spec stop_module(ejabberd:server(), module()) -> 'error' | {'aborted',_} | {'atomic',_}.
 stop_module(Host, Module) ->
-    SubHost = get_module_subhost(Host, Module),
     case stop_module_keep_config(Host, Module) of
         error ->
             error;
         ok ->
-            ets:delete(ejabberd_modules_subhosts, {Module, SubHost}),
             del_module_mnesia(Host, Module)
     end.
 
@@ -232,6 +230,7 @@ stop_module_keep_config(Host, Module) ->
             ets:delete(ejabberd_modules, {Module, Host}),
             ok;
         _ ->
+            ets:delete(ejabberd_modules_subhosts, get_module_subhost(Host, Module)),
             ets:delete(ejabberd_modules, {Module, Host}),
             ok
     end.
